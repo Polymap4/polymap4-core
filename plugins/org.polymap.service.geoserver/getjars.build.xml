@@ -54,7 +54,6 @@
 	</target>
 	
 	<target name="initRemoteMavenRepos" description="use real Maven repositories directly" unless="nexusURL">
-	    <!-- remote repositories as defined in copy.properties -->
 	    <artifact:remoteRepository id="central.repository" url="http://repo1.maven.org/maven2" />
 	    <artifact:remoteRepository id="geoserver.repository" url="http://repo.boundlessgeo.com/main" />
 	    <artifact:remoteRepository id="geotools.repository" url="http://download.osgeo.org/webdav/geotools" />
@@ -65,14 +64,9 @@
 			depends="initNexus, initRemoteMavenRepos" />
 
 	<target name="load_m2_deps" depends="init, create, initMavenRepos" unless="already_downloaded">
-	    <!-- remote repositories as defined in copy.properties -->
 	    <artifact:localRepository id="local.repository" path="${user.home}/.m2/repository" />
 		
-		<!-- we can probably replace this with a reference to a pom.xml file -->
-		<!-- Use http://mvnrepository.com/ to look stuff up -->
 		<artifact:dependencies filesetId="dependency.fileset" sourcesFilesetId="sources.dependency.fileset" versionsId="dependency.versions" useScope="runtime">
-
-            <!-- repositories as defined above-->
             <localRepository refid="local.repository" />
             <remoteRepository refid="central.repository" />
             <remoteRepository refid="geoserver.repository" />
@@ -159,7 +153,9 @@
 		<mkdir dir="${libs_src_dir}" />
 	</target>
 
-	<!-- Used by headless build please make sure this does everthing from clean to download and fix etc.. -->
+	<!-- 
+	  Used by headless build please make sure this does everthing from clean to download and fix etc.. 
+	  -->
 	<target name="full-build" depends="clean, build" description="clean and build">
 	</target>
 
