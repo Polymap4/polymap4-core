@@ -417,8 +417,7 @@ public class MapViewer<CL>
             Envelope envelope = new Envelope( extent.minx, extent.maxx, extent.miny, extent.maxy );
             // bypass concern, prevent loop
             this.mapExtent.info().setRawValue( envelope );
-            
-            this.resolution.info().setRawValue( payload.resolution() );
+            this.resolution.info().setRawValue( (float)payload.resolution() );
         });
     }
 
