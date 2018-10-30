@@ -16,12 +16,17 @@ package org.polymap.service.fs.spi;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+
+import org.polymap.service.fs.webdav.WebDavServer;
+
+import io.milton.http.Request;
 
 /**
  * Default implementation of an content node. 
@@ -146,4 +151,21 @@ public abstract class DefaultContentNode
         return data.put( key, value );
     }
     
+    
+    /**
+     * Preserv request params (authToken)
+     */
+    protected String requestParams() {
+        StringBuilder result = new StringBuilder( 256 );
+        Request request = WebDavServer.request();
+        if (request != null) {
+            AtomicBoolean isFirst = new AtomicBoolean( true );
+            for (Map.Entry<String,String> param : request.getParams().entrySet() ) {
+                result.append( isFirst.getAndSet( false ) ? "?" : "&" )
+                .append( param.getKey() ).append( "=" ).append( param.getValue() ); 
+            }
+        }
+        return result.toString();
+    }
+
 }

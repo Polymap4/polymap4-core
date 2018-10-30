@@ -1,5 +1,12 @@
 package org.polymap.service.fs.webdav;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.milton.http.Auth;
 import io.milton.http.AuthenticationHandler;
 import io.milton.http.Filter;
@@ -14,13 +21,6 @@ import io.milton.http.http11.auth.SecurityManagerBasicAuthHandler;
 import io.milton.http.http11.auth.SecurityManagerDigestAuthenticationHandler;
 import io.milton.resource.Resource;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * A filter to perform authentication before resource location.
  * <p/>
@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * null when used with this filter. This approach allows these handlers to be used
  * with the post-resource-location approach.
  * <p/>
- * The This is taken from {@link io.milton.http.http11.auth.PreAuthenticationFilter}.
+ * This is taken from {@link io.milton.http.http11.auth.PreAuthenticationFilter}.
  * The only difference is that it provides an {@link DummyResource} with the realm so
  * that the above is not true for getRealm().
  */

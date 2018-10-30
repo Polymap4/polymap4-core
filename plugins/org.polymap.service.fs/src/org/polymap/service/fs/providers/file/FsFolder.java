@@ -14,8 +14,6 @@
  */
 package org.polymap.service.fs.providers.file;
 
-import io.milton.http.FileItem;
-
 import java.util.Map;
 
 import java.io.File;
@@ -35,6 +33,8 @@ import org.polymap.service.fs.spi.IContentPutable;
 import org.polymap.service.fs.spi.IContentWriteable;
 import org.polymap.service.fs.spi.IMakeFolder;
 import org.polymap.service.fs.spi.NotAuthorizedException;
+
+import io.milton.http.FileItem;
 
 /**
  * 
@@ -60,26 +60,6 @@ public class FsFolder
     }
     
 
-//    public String getDescription( String contentType ) {
-//        // FIXME hard coded servlet path
-//        String basePath = FilenameUtils.normalizeNoEndSeparator( getPath().toString() );
-//        String path = "/webdav" + basePath; // + "/" + r.getName();
-//
-//        return "<b>Dieses Verzeichnis bietet eine Schittstelle zum Filesystem des POLYMAP3-Servers.</b>" +
-//            "<p/>" +
-//            "<form action=\"" + path + "\"" +
-//            "  enctype=\"multipart/form-data\" method=\"post\">" +
-//            "  <p>" +
-//            "    Waehlen Sie eine Datei fuer den Import (EDBS, *.zip):<br/>" +
-//            "    <input type=\"file\" name=\"datafile\" size=\"40\">" +
-//            "  </p>" +
-//            "  <div>" +
-//            "    <input type=\"submit\" value=\"Senden\">" +
-//            "  </div>" +
-//            "</form>";
-//    }
-
-    
     public IContentFile createNew( String newName, InputStream in, Long length, String contentType )
             throws IOException, NotAuthorizedException, BadRequestException {
         return getProvider().createNew( this, newName, in );

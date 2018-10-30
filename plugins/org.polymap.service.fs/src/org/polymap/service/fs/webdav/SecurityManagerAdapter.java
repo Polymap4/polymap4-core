@@ -14,13 +14,6 @@
  */
 package org.polymap.service.fs.webdav;
 
-import io.milton.http.Auth;
-import io.milton.http.SecurityManager;
-import io.milton.http.Request;
-import io.milton.http.Request.Method;
-import io.milton.http.http11.auth.DigestResponse;
-import io.milton.resource.Resource;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -30,6 +23,13 @@ import org.apache.commons.logging.LogFactory;
 import org.polymap.core.security.SecurityContext;
 import org.polymap.core.security.UserPrincipal;
 
+import io.milton.http.Auth;
+import io.milton.http.Request;
+import io.milton.http.Request.Method;
+import io.milton.http.SecurityManager;
+import io.milton.http.http11.auth.DigestResponse;
+import io.milton.resource.Resource;
+
 /**
  * Adapter to the {@link SecurityContext} authentication.
  * 
@@ -38,7 +38,7 @@ import org.polymap.core.security.UserPrincipal;
 public class SecurityManagerAdapter
         implements SecurityManager {
 
-    private static Log log = LogFactory.getLog( SecurityManagerAdapter.class );
+    private static final Log log = LogFactory.getLog( SecurityManagerAdapter.class );
 
     private String          realm;
     

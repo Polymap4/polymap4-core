@@ -21,7 +21,6 @@ import java.util.TreeMap;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -38,7 +37,7 @@ public class DefaultContentFolder
         extends DefaultContentNode
         implements IContentFolder {
 
-    private static Log log = LogFactory.getLog( DefaultContentFolder.class );
+    private static final Log log = LogFactory.getLog( DefaultContentFolder.class );
 
     protected Date              modified = new Date();
     
@@ -120,11 +119,8 @@ public class DefaultContentFolder
         
         // upload via browser
         if (this instanceof IContentWriteable) {
-            // FIXME hard coded servlet path
-            String basePath = FilenameUtils.normalizeNoEndSeparator( getPath().toString() );
-            String path = "/webdav" + basePath; // + "/" + r.getName();
             w.writeText(
-                    "<form action=\"" + path + "\"" +
+                    "<form action=\"." + requestParams() + "\"" +
                     "  enctype=\"multipart/form-data\" method=\"post\">" +
                     "  <p style=\"background:#e0e0e0;\">" +
                     "    <b>File upload: </b>" +
@@ -153,18 +149,8 @@ public class DefaultContentFolder
             w.open( "tr" );
             w.begin( "tr" ).writeAtt( "style", c++%2==0 ? "background:#f0f0f0;" : "background:#ffffff;" ).open();
             w.open( "td" );
-            // FIXME hard coded servlet path
-//            String basePath = FilenameUtils.normalizeNoEndSeparator( node.getPath().toString() );
-//            String path = "/webdav" + basePath /*+ "/" + node.getName()*/;
-            String path = node.getName() + (node instanceof IContentFolder ? "/" : "");
-            log.debug( path );
 
-            w.begin( "a" ).writeAtt( "href", path ).open().writeText( node.getName() ).close();
-
-//            w.begin( "a" ).writeAtt( "href", "#" ).writeAtt( "onclick",
-//                    "editDocument('" + path + "')" ).open().writeText( "(edit with office)" )
-//                    .close();
-
+            w.begin( "a" ).writeAtt( "href", href( node ) ).open().writeText( node.getName() ).close();
             w.close( "td" );
             
             // file? -> content length
@@ -192,6 +178,14 @@ public class DefaultContentFolder
         }
         w.close( "table" );
         w.flush();
+    }
+
+    
+    protected String href( IContentNode node ) {
+        return new StringBuilder( 256 )
+                .append( node.getName() )
+                .append( node instanceof IContentFolder ? "/" : "" )
+                .append( requestParams() ).toString();
     }
 
 }
