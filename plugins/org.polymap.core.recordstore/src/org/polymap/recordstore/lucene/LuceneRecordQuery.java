@@ -49,7 +49,7 @@ import org.polymap.recordstore.ResultSet;
 public class LuceneRecordQuery
         extends RecordQuery {
 
-    private static Log log = LogFactory.getLog( LuceneRecordQuery.class );
+    private static final Log log = LogFactory.getLog( LuceneRecordQuery.class );
 
     /** Max size of a {@link ResultSet}. */
     public static final int     BIG_BUT_NOT_MAX_VALUE = 1000000;
@@ -123,7 +123,7 @@ public class LuceneRecordQuery
 
     
     protected void logResult( int length, Timer timer ) {
-        log.info( "LUCENE: " 
+        log.debug( "LUCENE: " 
                 + abbreviate( luceneQuery.toString(), 256 ) 
                 + "  --  results: " + length
                 + " [" + getFirstResult() + "-" + getMaxResults() + "]"
