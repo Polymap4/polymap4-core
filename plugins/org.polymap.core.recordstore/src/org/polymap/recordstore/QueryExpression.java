@@ -77,9 +77,8 @@ public abstract class QueryExpression {
 
         @Override
         public String toString() {
-            return "Equal[key=" + key + ", value=" + value + "]";
+            return key + " == " + value;
         }
-        
     }
 
 
@@ -99,6 +98,11 @@ public abstract class QueryExpression {
                 return ((Comparable)recordValue).compareTo( value ) > 0;
             }
             return false;
+        }
+
+        @Override
+        public String toString() {
+            return key + " > " + value;
         }
     }
 

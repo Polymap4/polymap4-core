@@ -22,7 +22,8 @@ import java.util.Map.Entry;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.LogFactory;import org.apache.commons.logging.Log;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * A simple query that every store implementation should handle. SimpleQuery supports
@@ -38,7 +39,7 @@ public final class SimpleQuery
         extends RecordQuery
         implements IRecordState {
 
-    private static Log log = LogFactory.getLog( SimpleQuery.class );
+    private static final Log log = LogFactory.getLog( SimpleQuery.class );
 
     private List<QueryExpression>       expressions = new ArrayList();
     
@@ -55,6 +56,12 @@ public final class SimpleQuery
     }
     
     
+    @Override
+    public String toString() {
+        return expressions.toString();
+    }
+
+
     public ResultSet execute() throws IOException {
         throw new RuntimeException( "Method must never be called. Stores have to provide specific logic." );
     }
