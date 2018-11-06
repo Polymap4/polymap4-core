@@ -432,6 +432,7 @@ public class Cache304 {
 
         // not expired
         query.greater( CachedTile.TYPE.expires.name(), System.currentTimeMillis() );
+        log.info( "QUERY: " + query );
         return query;
     }
     

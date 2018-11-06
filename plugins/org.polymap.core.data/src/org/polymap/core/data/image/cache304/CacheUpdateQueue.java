@@ -130,6 +130,7 @@ public class CacheUpdateQueue {
         
         public void apply( Updater updater ) throws Exception {
             updater.store( tile.state() );
+            log.info( "Tile stored:     " + tile.layerId.get() + " / " + tile.filename.get() );
         }
 
         public void adaptCacheResult( List<CachedTile> tiles, RecordQuery query ) {
@@ -140,7 +141,7 @@ public class CacheUpdateQueue {
                 }
             }
             tiles.add( tile );
-            log.debug( "StoreCommand: APAPTED: TILE ADDED" );
+            log.debug( "APAPTED: TILE ADDED" );
         }
     }
 
@@ -160,6 +161,7 @@ public class CacheUpdateQueue {
         
         public void apply( Updater updater ) throws Exception {
             updater.store( tile.state() );
+            log.info( "Tile touched:    " + tile.layerId.get() + " / " + tile.filename.get() );
         }
 
         public void adaptCacheResult( List<CachedTile> tiles, RecordQuery query ) {
