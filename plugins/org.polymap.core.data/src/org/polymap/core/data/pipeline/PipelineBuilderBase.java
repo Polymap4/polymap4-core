@@ -93,6 +93,9 @@ public abstract class PipelineBuilderBase
                 processor.init( site );
                 pipeline.addLast( procDesc );
             }
+            catch (RuntimeException e) {
+                throw e;
+            }
             catch (Exception e) {
                 throw new PipelineBuilderException( e.getMessage(), e );
             }
