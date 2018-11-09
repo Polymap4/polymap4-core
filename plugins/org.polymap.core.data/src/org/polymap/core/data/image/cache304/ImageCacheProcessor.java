@@ -95,14 +95,14 @@ public class ImageCacheProcessor
             long modifiedSince = request.getIfModifiedSince();
             long lastModified = cachedTile.lastModified.get();
             if (modifiedSince > 0 && lastModified > modifiedSince) {
-                log.info( "CACHE: 304! :) -- " + timer.elapsedTime() + "ms" );
+                log.debug( "CACHE: 304! :) -- " + timer.elapsedTime() + "ms" );
                 context.sendResponse( EncodedImageResponse.NOT_MODIFIED );
                 context.sendResponse( ProcessorResponse.EOP );
             }
             // in cache but modified
             else {
                 byte[] data = cachedTile.data.get();
-                log.info( "CACHE: Hit (" + data.length + " bytes) -- " + timer.elapsedTime() + "ms" );
+                log.debug( "CACHE: Hit (" + data.length + " bytes) -- " + timer.elapsedTime() + "ms" );
                 EncodedImageResponse response = new EncodedImageResponse( data, data.length );
                 response.setLastModified( cachedTile.lastModified.get() );
                 response.setExpires( cachedTile.expires.get() );
@@ -113,7 +113,7 @@ public class ImageCacheProcessor
         
         // not in cache -> send request down the pipeline 
         else {
-            log.info( "CACHE: Miss -- " + timer.elapsedTime() + "ms" );
+            log.debug( "CACHE: Miss -- " + timer.elapsedTime() + "ms" );
             ByteArrayOutputStream cacheBuf = new ByteArrayOutputStream( 128*1024 );
             context.put( "cacheBuf", cacheBuf );
             context.put( "request", request );

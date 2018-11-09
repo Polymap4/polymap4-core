@@ -1,6 +1,6 @@
 /* 
  * polymap.org
- * Copyright (C) 2015, Falko Bräutigam. All rights reserved.
+ * Copyright (C) 2015-2018, Falko Bräutigam. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,158 +12,122 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package org.apache.commons.logging;
+package org.polymap.core.runtime.log;
 
-import static org.apache.commons.lang3.StringUtils.abbreviate;
-import static org.apache.commons.lang3.StringUtils.rightPad;
+import org.apache.commons.logging.Log;
 
 /**
- * See {@link LogFactory}.
  * 
- * @see LogFactory
+ * @see SimpleLogFactory
  * @author <a href="http://www.polymap.de">Falko Bräutigam</a>
  */
-public class LogImpl
+public final class SimpleLog
         implements Log {
 
-    protected static final int      MAX_NAME_WIDTH = 23;
+    // The instance must not hold any back references to other objects.
+    // This helps the GC. Even a SimpleLogFactory reference might be a problem?
     
-    protected enum Level {
-        TRACE,
-        DEBUG,
-        INFO,
-        WARN,
-        ERROR,
-        FATAL
-    }
+    private String              name;
 
-    // instance *******************************************
+    private final Level         lowestLevel;
     
-    private String      name;
-    
-    private Level       currentLevel;
+    private final LogFormat     format;
 
     
-    protected LogImpl( String name, Level currentLevel ) {
-        super();
+    protected SimpleLog( String name, Level lowestLevel, LogFormat format ) {
         this.name = name;
-        this.currentLevel = currentLevel;
-    }
-
-    public void setLevel( Level currentLevel ) {
-        this.currentLevel = currentLevel;
+        this.lowestLevel = lowestLevel;
+        this.format = format;
     }
 
     public Level getLevel() {
-        return currentLevel;
+        return lowestLevel;
     }
 
     @Override
     public final void info( Object msg, Throwable e ) {
         if (isLevelEnabled( Level.INFO )) {
-            log( Level.INFO, msg, e );
+            format.log( name, Level.INFO, msg, e );
         }
     }
     
     @Override
     public final void info( Object msg ) {
         if (isLevelEnabled( Level.INFO )) {
-            log( Level.INFO, msg );
+            format.log( name, Level.INFO, msg );
         }
     }
     
     @Override
     public final void warn( Object msg, Throwable e ) {
         if (isLevelEnabled( Level.WARN )) {
-            log( Level.WARN, msg, e );
+            format.log( name, Level.WARN, msg, e );
         }
     }
     
     @Override
     public final void warn( Object msg ) {
         if (isLevelEnabled( Level.WARN )) {
-            log( Level.WARN, msg );
+            format.log( name, Level.WARN, msg );
         }
     }
     
     @Override
     public final void debug( Object msg, Throwable e ) {
         if (isLevelEnabled( Level.DEBUG )) {
-            log( Level.DEBUG, msg, e );
+            format.log( name, Level.DEBUG, msg, e );
         }
     }
     
     @Override
     public final void debug( Object msg ) {
         if (isLevelEnabled( Level.DEBUG )) {
-            log( Level.DEBUG, msg );
+            format.log( name, Level.DEBUG, msg );
         }
     }
     
     @Override
     public final void trace( Object msg, Throwable e ) {
         if (isLevelEnabled( Level.TRACE )) {
-            log( Level.TRACE, msg, e );
+            format.log( name, Level.TRACE, msg, e );
         }
     }
     
     @Override
     public final void trace( Object msg ) {
         if (isLevelEnabled( Level.TRACE )) {
-            log( Level.TRACE, msg );
+            format.log( name, Level.TRACE, msg );
         }
     }
     
     @Override
     public final void error( Object msg, Throwable e ) {
         if (isLevelEnabled( Level.ERROR )) {
-            log( Level.ERROR, msg, e );
+            format.log( name, Level.ERROR, msg, e );
         }
     }
     
     @Override
     public final void error( Object msg ) {
         if (isLevelEnabled( Level.ERROR )) {
-            log( Level.ERROR, msg );
+            format.log( name, Level.ERROR, msg );
         }
     }
     
     @Override
     public final void fatal( Object msg, Throwable e ) {
         if (isLevelEnabled( Level.FATAL )) {
-            log( Level.FATAL, msg, e );
+            format.log( name, Level.FATAL, msg, e );
         }
     }
     
     @Override
     public final void fatal( Object msg ) {
         if (isLevelEnabled( Level.FATAL )) {
-            log( Level.FATAL, msg );
+            format.log( name, Level.FATAL, msg );
         }
     }
     
-    protected void log( Level level, Object msg, Throwable... e ) {
-        if (isLevelEnabled( level )) {
-            StringBuilder buf = new StringBuilder( 128 );
-            buf.append( "[" ).append( level ).append( "]" ).append( rightPad( "", 5 - level.toString().length() ) );
-            buf.append( " " ).append( abbreviate( rightPad( name, MAX_NAME_WIDTH ), MAX_NAME_WIDTH ) ).append( ":" );
-            buf.append( " " ).append(  msg.toString() );
-            
-            if (level.ordinal() >= Level.WARN.ordinal()) {
-                System.err.println( buf.toString() );
-            }
-            else {
-                System.out.println( buf.toString() );                
-            }
-            
-            for (int i=0; i<e.length; i++) {
-                if (e[i] != null) {
-                    e[i].printStackTrace( System.err );
-                }
-            }
-        }
-    }
-
     /**
      * Are debug messages currently enabled?
      * <p>
@@ -171,6 +135,7 @@ public class LogImpl
      * concatenation to be avoided when the message will be ignored by the
      * logger.
      */
+    @Override
     public final boolean isDebugEnabled() {
         return isLevelEnabled( Level.DEBUG );
     }
@@ -182,6 +147,7 @@ public class LogImpl
      * concatenation to be avoided when the message will be ignored by the
      * logger.
      */
+    @Override
     public final boolean isErrorEnabled() {
         return isLevelEnabled( Level.ERROR );
     }
@@ -193,6 +159,7 @@ public class LogImpl
      * concatenation to be avoided when the message will be ignored by the
      * logger.
      */
+    @Override
     public final boolean isFatalEnabled() {
         return isLevelEnabled( Level.FATAL );
     }
@@ -204,6 +171,7 @@ public class LogImpl
      * concatenation to be avoided when the message will be ignored by the
      * logger.
      */
+    @Override
     public final boolean isInfoEnabled() {
         return isLevelEnabled( Level.INFO );
     }
@@ -215,6 +183,7 @@ public class LogImpl
      * concatenation to be avoided when the message will be ignored by the
      * logger.
      */
+    @Override
     public final boolean isTraceEnabled() {
         return isLevelEnabled( Level.TRACE );
     }
@@ -226,12 +195,13 @@ public class LogImpl
      * concatenation to be avoided when the message will be ignored by the
      * logger.
      */
+    @Override
     public final boolean isWarnEnabled() {
         return isLevelEnabled( Level.WARN );
     }
     
     protected boolean isLevelEnabled( Level level ) {
-        return currentLevel.ordinal() <= level.ordinal();
+        return level.ordinal() >= lowestLevel.ordinal();
     }
     
 }

@@ -14,11 +14,13 @@
  */
 package org.apache.commons.logging;
 
+import org.polymap.core.runtime.log.SimpleLogFactory;
+
 /**
  * Replacement for org.apache.commons.logging classes.
  * <p/>
  * Polymap started out with commons-logging. A lot of code depends on it. However,
- * it causes some problem with RAP.
+ * it causes some class loading issues RAP.
  * <ul>
  * <li>Initialization: Thread ClassLoader is bundle specific</li>
  * <li>no global caches, no leak problem</li>
@@ -29,14 +31,12 @@ package org.apache.commons.logging;
  */
 public class LogFactory {
 
-    private static final LogImpl.Level      DEFAULT_LEVEL = LogImpl.Level.INFO;
-
     public static Log getLog( Class clazz ) {
-        return new LogImpl( clazz.getSimpleName(), DEFAULT_LEVEL );
+        return SimpleLogFactory.getLog( clazz );
     }
     
     public static Log getLog( String name ) {
-        return new LogImpl( name, DEFAULT_LEVEL );
+        return SimpleLogFactory.getLog( name );
     }
     
 }

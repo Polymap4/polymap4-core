@@ -102,7 +102,8 @@ Bundle-ClassPath: .,
  lib/commons-lang3-3.3.2.jar,
  lib/guava-18.0.jar,
  lib/json-20141113.jar
-Import-Package: org.osgi.service.http
+Import-Package: org.apache.commons.lang3.tuple,
+ org.osgi.service.http
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Localization: plugin
 Bundle-ActivationPolicy: lazy

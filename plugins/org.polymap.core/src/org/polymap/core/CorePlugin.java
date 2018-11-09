@@ -44,7 +44,7 @@ import org.polymap.core.ui.ImageRegistryHelper;
 public class CorePlugin
         extends AbstractUIPlugin {
 
-	private static Log log = LogFactory.getLog( CorePlugin.class );
+	private static final Log log = LogFactory.getLog( CorePlugin.class );
 
     public static final String      PLUGIN_ID = "org.polymap.core";
 
@@ -171,7 +171,7 @@ public class CorePlugin
     
     public void start( final BundleContext context ) throws Exception {
         super.start( context );
-        log.debug( "start..." );
+        log.debug( "Start..." );
         plugin = this;
         
         System.setProperty( "http.agent", "Polymap4 (https://github.com/Polymap4)" );
