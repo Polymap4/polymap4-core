@@ -18,6 +18,9 @@ import static org.polymap.core.runtime.UIThreadExecutor.runtimeException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -61,20 +64,20 @@ import org.polymap.core.ui.UIUtils;
 public abstract class UIJob
         extends Job {
 
-    private static Log log = LogFactory.getLog( UIJob.class );
+    private static final Log log = LogFactory.getLog( UIJob.class );
     
     /** The default priority for newly created jobs. */
     public static final int                 DEFAULT_PRIORITY = Job.SHORT;
     
-    private static final ThreadLocal<UIJob> threadJob = new ThreadLocal();
+    private static final ThreadLocal<UIJob> THREAD_JOB = new ThreadLocal();
     
-    private static final NullProgressMonitor nullMonitor = new NullProgressMonitor();
+    private static final NullProgressMonitor NULL_MONITOR = new NullProgressMonitor();
     
     private static final IMessages          i18n = Messages.forClass( UIJob.class );
     
     
     public static UIJob ofThread() {
-        return threadJob.get();
+        return THREAD_JOB.get();
     }
 
     public static void joinJobs( Iterable<? extends Job> jobs ) throws InterruptedException {
@@ -89,7 +92,7 @@ public abstract class UIJob
      */
     public static IProgressMonitor monitorOfThread() {
         UIJob job = UIJob.ofThread();
-        return job != null ? job.executionMonitor : nullMonitor;
+        return job != null ? job.executionMonitor : NULL_MONITOR;
     }
 
     
@@ -137,6 +140,12 @@ public abstract class UIJob
     private IProgressMonitor    executionMonitor;
 
     private SessionContext      sessionContext;
+    
+    /**
+     * The stack trace when this job was <b>created</b>. Unfortunatelly it is not the
+     * stacktrace of {@link #schedule()}, as this is a final method.
+     */
+    private Exception           callerStackTrace;
 
     /**
      * @deprecated for Batik we have UI callback enabled all the time so we don't
@@ -171,8 +180,23 @@ public abstract class UIJob
 
         setSystem( system );
         setPriority( DEFAULT_PRIORITY );
+        
+        // preserve stack *just* if assertions are enabled
+        assert preserveStackTrace();
     }
 
+
+    @Override
+    public String toString() {
+        StringBuilder buf = new StringBuilder( 4*1024 ).append( super.toString() );
+        if (callerStackTrace != null) {
+            buf.append( "\n\nCalling stack trace: " );
+            StringWriter out = new StringWriter( 4*1024 );
+            callerStackTrace.printStackTrace( new PrintWriter( out ) );
+            buf.append( out.toString() );
+        }
+        return buf.toString();
+    }
 
     /**
      * Makes sure that the UI is updated while this job is running.
@@ -223,12 +247,19 @@ public abstract class UIJob
     protected abstract void runWithException( IProgressMonitor monitor ) throws Exception;
     
 
+    protected boolean preserveStackTrace() {
+        callerStackTrace = new Exception();
+        callerStackTrace.fillInStackTrace();
+        return true;
+    }
+    
+    
     protected final IStatus run( final IProgressMonitor monitor ) {
         assert sessionContext != null : "No session context for job: " + getName() + " - Did you call from servlet? Consider DefaultSessionContextProvider to give it a proper context.";
         sessionContext.execute( () -> {
             try {
                 executionMonitor = monitor;
-                threadJob.set( UIJob.this );
+                THREAD_JOB.set( UIJob.this );
                 runWithException( executionMonitor );
                 resultStatus = executionMonitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
             }
@@ -251,7 +282,7 @@ public abstract class UIJob
                         e.getLocalizedMessage() /*Messages.get( "UIJob_errormsg" )*/, e );
             }
             finally {
-                threadJob.set( null );
+                THREAD_JOB.set( null );
                 executionMonitor = null;
                 if (uiCallbackHandle != null) {
                     UIThreadExecutor.async( () -> UIUtils.deactivateCallback( uiCallbackHandle ), runtimeException() );                    
