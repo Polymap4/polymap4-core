@@ -14,8 +14,8 @@
  */
 package org.polymap.core.runtime.log;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import java.io.BufferedInputStream;
@@ -27,7 +27,6 @@ import java.io.InputStream;
 
 import org.osgi.framework.Bundle;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 
 import org.eclipse.core.internal.runtime.InternalPlatform;
@@ -46,7 +45,7 @@ public class SimpleLogFactory {
 
     private static final String     LOG_PROPERTIES = "simplelog.properties";
     
-    private static List<Pair<String,Level>> levels = new ArrayList();
+    private static Map<String,Level> levels = new HashMap( 32 );
     
     private static LogFormat        format = new SimpleLogFormat();
     
@@ -64,9 +63,14 @@ public class SimpleLogFactory {
         ){
             Properties props = new Properties();
             props.load( in );
-            props.entrySet().forEach( entry -> levels.add( Pair.of( 
-                    (String)entry.getKey(), 
-                    Level.valueOf( entry.getValue().toString().toUpperCase() ) ) ) );
+            for (Map.Entry entry : props.entrySet() ) {
+                try {
+                    levels.put( (String)entry.getKey(), Level.valueOf( entry.getValue().toString().toUpperCase() ) );
+                }
+                catch (Exception e) {
+                    System.err.println( "\tWARNING: wrong entry: " + entry );
+                }
+            }
             System.out.println( "done." );
         }
         catch (FileNotFoundException e) {
@@ -87,7 +91,7 @@ public class SimpleLogFactory {
         // find most significant entry/level for this class
         Level level = DEFAULT_LEVEL;
         String longestPrefix = "";
-        for (Pair<String,Level> entry : levels) {
+        for (Map.Entry<String,Level> entry : levels.entrySet()) {
             if (name.startsWith( entry.getKey() ) 
                     && entry.getKey().length() > longestPrefix.length()) {
                 level = entry.getValue();

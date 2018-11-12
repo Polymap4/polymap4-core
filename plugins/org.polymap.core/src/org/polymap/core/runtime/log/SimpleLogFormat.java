@@ -20,15 +20,14 @@ import static org.apache.commons.lang3.StringUtils.rightPad;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * 
- * 
+ * Simple, hard-coded output format.
  *
  * @author Falko Bräutigam
  */
 public final class SimpleLogFormat
         implements LogFormat {
 
-    protected static final int      MAX_NAME_WIDTH = 20;
+    protected static final int      MAX_NAME_WIDTH = 23;
 
     @Override
     public void log( String name, Level level, Object msg, Throwable... e ) {
