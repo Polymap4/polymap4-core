@@ -54,12 +54,16 @@ public class AlwaysTrueEditor
     @Override
     public Composite createContents( Composite parent ) {
         try {
-            prop.get().setFilter( Filter.INCLUDE );
+            // prevent unnecessary set on init to help submit status
+            // XXX is this check needed anyway?
+            if (!Filter.INCLUDE.equals( prop.get().filter() )) {
+                prop.get().setFilter( Filter.INCLUDE );
+            }
+            return parent;
         }
         catch (IOException e) {
             throw new RuntimeException( e );
         }
-        return parent;
     }
     
 }
