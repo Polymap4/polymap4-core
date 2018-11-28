@@ -65,6 +65,7 @@ import org.polymap.core.project.ILayer;
 import org.polymap.core.runtime.UIJob;
 
 import org.polymap.service.geoserver.GeoServerServlet;
+import org.polymap.service.geoserver.GeoServerUtils;
 
 /**
  * A {@link GetMapOutputFormat} that produces {@link RenderedImageMap} instances with
@@ -281,18 +282,10 @@ public class PipelineMapOutputFormat
 
 
     protected ILayer findLayer( Layer mapLayer ) {
-        ILayer layer = null;
         String layerName = StringUtils.substringAfterLast( mapLayer.getTitle(), ":" );
-        for (ILayer l : server.map.layers) {
-            if (l.label.get().equals( layerName )) {
-                layer = l;
-                break;
-            }
-        }
-        if (layer == null) {
-            throw new RuntimeException( "No such layer for title: " + mapLayer.getTitle() );
-        }
-        return layer;
+        return server.map.layers.stream()
+                .filter( l -> GeoServerUtils.simpleName( l.label.get() ).equals( layerName ))
+                .findAny().orElseThrow( () -> new RuntimeException( "No such layer for title: " + mapLayer.getTitle() ) );
     }
 
 
