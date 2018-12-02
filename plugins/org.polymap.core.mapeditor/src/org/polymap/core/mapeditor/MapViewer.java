@@ -374,6 +374,7 @@ public class MapViewer<CL>
         return this;
     }
     
+    
     public MapViewer<CL> addMapInteraction( final Interaction interaction ) {
         interactions.add( interaction );
         if (olmap != null) {
