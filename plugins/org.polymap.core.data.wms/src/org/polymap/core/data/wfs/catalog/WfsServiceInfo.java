@@ -58,8 +58,10 @@ public class WfsServiceInfo
 
         // super hack
         if (url.contains( "geoportal-vg.de" )) {
-            url = url.replace( "VERSION=2.0.0", "VERSION=1.0.0" );
-            log.info( "geoportal-vg.de :: " + url );
+            url = url.contains( "VERSION=2.0.0" ) 
+                    ? url.replace( "VERSION=2.0.0", "VERSION=1.0.0" )
+                    : url + "VERSION=1.0.0";
+            log.warn( "geoportal-vg.de :: " + url );
         }
         
 //        URL url = (URL)params.get( WFSDataStoreFactory.URL.key );

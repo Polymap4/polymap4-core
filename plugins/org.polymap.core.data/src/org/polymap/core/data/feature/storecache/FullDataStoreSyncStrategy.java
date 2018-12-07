@@ -90,6 +90,7 @@ public class FullDataStoreSyncStrategy
                     // wait here then one syncJob starts, ifUpdateNeeded is updated and the next
                     // instances assumes that cache is up-to-date and shows maybe empty layer
                     if (Display.getCurrent() == null) {
+                        // FIXME limit wait time in order to prevent hang
                         syncJob.join();
                     }
                     else {
@@ -122,6 +123,7 @@ public class FullDataStoreSyncStrategy
                     syncJob.schedule();
                     // XXX unfortunately remove/re-create schema and fetching features is not
                     // an atomic operation (due to stupid geotools DataStore API)
+                    // FIXME limit wait time in order to prevent hang
                     syncJob.join();
                     return true;
                 }
