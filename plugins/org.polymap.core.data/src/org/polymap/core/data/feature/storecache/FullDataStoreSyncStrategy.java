@@ -21,10 +21,8 @@ import java.time.Duration;
 
 import org.geotools.data.DataAccess;
 import org.geotools.data.DataStore;
-import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
-import org.geotools.data.Transaction;
 import org.geotools.feature.NameImpl;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.Name;
@@ -109,7 +107,7 @@ public class FullDataStoreSyncStrategy
                 }
             }
             else {
-                log.info( "Update needed but other Job is running!" );
+                log.warn( "Update needed but other Job is running!" );
                 return false;
             }
         });
@@ -132,7 +130,7 @@ public class FullDataStoreSyncStrategy
                 }
             }
             else {
-                log.info( "Update needed but other Job is running!" );
+                log.warn( "Update needed but other Job is running!" );
                 return false;
             }
         });
@@ -153,7 +151,7 @@ public class FullDataStoreSyncStrategy
         @Override
         protected void runWithException( IProgressMonitor monitor ) throws Exception {
             monitor.beginTask( getName(), 4 );
-            log.info( "Start cache update..." );
+            log.debug( "Start cache update..." );
 
             // XXX remove/re-create schema and fetching features is not an
             // atomic operation (due to stupid geotools DataStore Transaction API)
@@ -165,37 +163,33 @@ public class FullDataStoreSyncStrategy
                 log.info( "Removing schema: " + schema.getName() );
                 cacheDs.removeSchema( schema.getName() );
             }
-            log.info( "Creating cache schema: " + schema.getName() );
+            log.debug( "Creating cache schema: " + schema.getName() );
             cacheDs.createSchema( schema );
             monitor.worked( 1 );
                         
             // fill cache
-            Transaction tx = new DefaultTransaction();
+//            Transaction tx = new DefaultTransaction();
             try {
                 Timer timer = new Timer();                
                 FeatureStore cacheFs = (FeatureStore)cacheDs.getFeatureSource( resName );
-                cacheFs.setTransaction( tx );
-//                monitor.subTask( "Clearing" );
-//                cacheFs.removeFeatures( Filter.INCLUDE );
-//                log.info( "Cache cleared: " + timer.elapsedTime() + "ms" ); timer.start();
-//                monitor.worked( 1 );
+//                cacheFs.setTransaction( tx );
                 
                 monitor.subTask( "Fetching" );
                 cacheFs.addFeatures( fs.getFeatures() );
-                log.info( "Cache filled: " + timer.elapsedTime() + "ms" ); timer.start();
+                log.debug( "Cache filled: " + timer.elapsedTime() + "ms" ); timer.start();
                 monitor.worked( 1 );
                 
                 monitor.subTask( "Committing" );
-                tx.commit();
-                log.info( "Cache committed: " + timer.elapsedTime() + "ms" );
-                monitor.done();
+//                tx.commit();
+                log.debug( "Cache committed: " + timer.elapsedTime() + "ms" );
             }
             catch (Exception e) {
-                log.warn( "", e );
-                tx.rollback();
+                //tx.rollback();
+                log.warn( "Cache not committed. (No rollback)", e );
             }
             finally {
-                tx.close();
+//                tx.close();
+                monitor.done();
             }
         }
 
