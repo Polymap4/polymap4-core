@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -48,12 +49,19 @@ import org.polymap.core.catalog.resolve.IServiceInfo;
 public class WfsServiceInfo
         extends DefaultServiceInfo {
 
-    private static Log log = LogFactory.getLog( WfsServiceInfo.class );
+    private static final Log log = LogFactory.getLog( WfsServiceInfo.class );
+    
     
     public static WfsServiceInfo of( IMetadata metadata, Map<String,String> params ) 
             throws ServiceException, MalformedURLException, IOException {
         String url = params.get( IMetadataResourceResolver.CONNECTION_PARAM_URL );
 
+        // super hack
+        if (url.contains( "geoportal-vg.de" )) {
+            url = url.replace( "VERSION=2.0.0", "VERSION=1.0.0" );
+            log.info( "geoportal-vg.de :: " + url );
+        }
+        
 //        URL url = (URL)params.get( WFSDataStoreFactory.URL.key );
 //        url = WFSDataStoreFactory.createGetCapabilitiesRequest( url );
 

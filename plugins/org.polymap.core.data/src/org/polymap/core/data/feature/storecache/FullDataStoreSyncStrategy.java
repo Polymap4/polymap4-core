@@ -160,7 +160,7 @@ public class FullDataStoreSyncStrategy
             monitor.subTask( "Re-creating schema" );
             FeatureType schema = fs.getSchema();
             if (cacheDs.getNames().contains( schema.getName() )) {
-                log.info( "Removing schema: " + schema.getName() );
+                log.debug( "Removing schema: " + schema.getName() );
                 cacheDs.removeSchema( schema.getName() );
             }
             log.debug( "Creating cache schema: " + schema.getName() );
@@ -181,7 +181,7 @@ public class FullDataStoreSyncStrategy
                 
                 monitor.subTask( "Committing" );
 //                tx.commit();
-                log.debug( "Cache committed: " + timer.elapsedTime() + "ms" );
+                log.info( "Cache updated. (" + timer.elapsedTime() + "ms)" );
             }
             catch (Exception e) {
                 //tx.rollback();
